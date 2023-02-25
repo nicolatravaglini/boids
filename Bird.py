@@ -11,6 +11,7 @@ class Bird:
         self.x = x
         self.y = y
         self.velocity = [random.uniform(-1, 1), random.uniform(-1, 1)]
+        self.color = [255, 255, 255]
         # Constants
         self.field_of_view = 50
         self.field_of_avoidance = 20
@@ -47,7 +48,7 @@ class Bird:
     def separation(self, birds):
         steering = [0, 0]
         for bird in birds:
-            if self != bird and Bird.distance(self, bird) <= self.field_of_avoidance:
+            if self != bird and Bird.distance(self, bird) < self.field_of_avoidance:
                 steering[0] += self.x - bird.x
                 steering[1] += self.y - bird.y
         self.velocity[0] = Bird.normalize(self.velocity[0] + steering[0] * self.separation_rate)
@@ -95,5 +96,28 @@ class Bird:
         self.move()
         self.pacman_effect()
 
+        self.choose_color(birds)
+
+    def choose_color(self, birds):
+        self.color = [255, 255, 255]
+        close_birds = 0
+        too_close_birds = 0
+        for bird in birds:
+            if self != bird and Bird.distance(self, bird) < self.field_of_avoidance:
+                too_close_birds += 1
+            elif self != bird and Bird.distance(self, bird) < self.field_of_view:
+                close_birds += 1
+
+        self.color[0] -= too_close_birds*100
+        self.color[1] -= close_birds*20
+        # self.color[2] -= (too_close_birds+close_birds)*50
+
+        if self.color[0] < 0:
+            self.color[0] = 0
+        if self.color[1] < 0:
+            self.color[1] = 0
+        if self.color[2] < 0:
+            self.color[2] = 0
+
     def draw(self):
-        pygame.draw.circle(self.win, (255, 255, 255), (self.x, self.y), 3)
+        pygame.draw.circle(self.win, self.color, (self.x, self.y), 3)
